@@ -1,0 +1,131 @@
+@import "tailwindcss";
+
+@theme {
+  --color-ink: #070708;
+  --color-ink-2: #0d0d0f;
+  --color-ink-3: #151518;
+  --color-line: rgb(255 255 255 / 0.09);
+  --color-bone: #ede8e0;
+  --color-mute: #8f8b85;
+  --color-ember: #e3a857;
+  --color-ember-deep: #c9683a;
+
+  --font-sans: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-instrument), ui-serif, Georgia, serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, SFMono-Regular, monospace;
+
+  --ease-cinema: cubic-bezier(0.2, 0.7, 0.2, 1);
+
+  --animate-marquee: marquee 45s linear infinite;
+  --animate-fade-up: fade-up 0.7s var(--ease-cinema) both;
+  --animate-rec: rec 1.6s ease-in-out infinite;
+
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+  @keyframes fade-up {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: none; }
+  }
+  @keyframes rec {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.25; }
+  }
+}
+
+@layer base {
+  html {
+    color-scheme: dark;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    html { scroll-behavior: smooth; }
+  }
+
+  body {
+    @apply bg-ink text-bone font-sans antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Film grain over everything, never interactive. */
+  body::after {
+    content: "";
+    position: fixed;
+    inset: -50%;
+    z-index: 60;
+    pointer-events: none;
+    opacity: 0.055;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  section[id] { scroll-margin-top: 4.5rem; }
+
+  ::selection { background: var(--color-ember); color: var(--color-ink); }
+
+  :focus-visible {
+    outline: 2px solid var(--color-ember);
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+}
+
+@layer components {
+  .container-x {
+    @apply mx-auto w-full max-w-[1400px] px-4 sm:px-8 lg:px-12;
+  }
+
+  .eyebrow {
+    @apply font-mono text-[11px] tracking-[0.22em] text-mute uppercase;
+  }
+
+  /* Scroll reveal — toggled by <Reveal>. */
+  .reveal {
+    opacity: 0;
+    transform: translateY(28px);
+    transition:
+      opacity 0.9s var(--ease-cinema),
+      transform 0.9s var(--ease-cinema);
+    transition-delay: var(--reveal-delay, 0ms);
+  }
+  .reveal[data-visible="true"] {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* Process timeline playhead sweeps once the track is in view. */
+  .playhead { left: 0%; }
+  .reveal[data-visible="true"] .playhead {
+    animation: playhead 5.5s var(--ease-cinema) 0.4s forwards;
+  }
+  .reveal[data-visible="true"] .clip-block {
+    animation: clip-in 0.8s var(--ease-cinema) both;
+    animation-delay: calc(var(--i) * 140ms + 200ms);
+  }
+  @keyframes playhead {
+    to { left: 100%; }
+  }
+  @keyframes progress {
+    from { transform: scaleX(0); }
+    to { transform: scaleX(1); }
+  }
+  @keyframes clip-in {
+    from { transform: scaleX(0); }
+    to { transform: scaleX(1); }
+  }
+
+  .no-scrollbar { scrollbar-width: none; }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal { opacity: 1; transform: none; transition: none; }
+  .reveal[data-visible="true"] .playhead { animation: none; left: 100%; }
+  .reveal[data-visible="true"] .clip-block { animation: none; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
